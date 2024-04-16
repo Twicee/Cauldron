@@ -32,6 +32,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+#This is just including all of the routes that have been defined in seperate files
 app.include_router(inventory.router)
 app.include_router(carts.router)
 app.include_router(catalog.router)
@@ -51,6 +52,7 @@ async def validation_exception_handler(request, exc):
 
     return JSONResponse(response, status_code=422)
 
+#This (@) is a decorator, eitherwise we could not use Fast API and this would be a normal function
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Central Coast Cauldrons."}

@@ -4,11 +4,12 @@ from src.api import auth
 import math
 
 router = APIRouter(
-    prefix="/inventory",
-    tags=["inventory"],
+    prefix="/inventory", #this is just a shortcut way of prefixing each route with the value
+    tags=["inventory"], #this is how we group our routes in /docs i.e. see them together nicely 
     dependencies=[Depends(auth.get_api_key)],
 )
 
+#pull from your database the following values i.e. so its not hardcoded
 @router.get("/audit")
 def get_inventory():
     """ """

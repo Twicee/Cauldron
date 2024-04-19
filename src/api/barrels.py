@@ -31,12 +31,13 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ """
     print(f"barrels delievered: {barrels_delivered} order_id: {order_id}")
 
-    #upon successful purchase update ml_in_barrel for each potion type
+    #upon successful purchase update num_green_ml for each potion type
     for barrel in barrels_delivered:
         if barrel.sku == "SMALL_GREEN_BARREL":
             with db.engine.begin() as connection:
-                connection.execute(sqlalchemy.text("UPDATE global_inventory SET green_ml_in_barrels = green_ml_in_barrels + 500"))
-                connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - 100"))
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_ml = num_green_ml + :new_ml"), 
+                                   {"new_ml": barrel.ml_per_barrel})
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": barrel.price})
 
     return "OK"
 
@@ -50,8 +51,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     #Inital Logic for when and what to buy:
     with db.engine.begin() as connection:
         total_potions = connection.execute(sqlalchemy.text("SELECT total_potion_num FROM global_inventory")).scalar_one()
+        gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar_one()
     
-    if total_potions < 10:
+    if total_potions < 10 and gold >= 100:
         return [
             {
                 "sku": "SMALL_GREEN_BARREL",

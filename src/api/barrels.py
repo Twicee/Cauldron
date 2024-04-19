@@ -32,7 +32,12 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     print(f"barrels delievered: {barrels_delivered} order_id: {order_id}")
 
     #upon successful purchase update ml_in_barrel for each potion type
-    
+    for barrel in barrels_delivered:
+        if barrel.sku == "SMALL_GREEN_BARREL":
+            with db.engine.begin() as connection:
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET green_ml_in_barrels = green_ml_in_barrels + 500"))
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - 100"))
+
     return "OK"
 
 # You should think of list[Barrel] as a list of Barrel Objects. Each containing the attributes specified by the schema

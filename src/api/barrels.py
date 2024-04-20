@@ -38,6 +38,16 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
                 connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_ml = num_green_ml + :new_ml"), 
                                    {"new_ml": barrel.ml_per_barrel})
                 connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": barrel.price})
+        if barrel.sku == "MINI_BLUE_BARREL":
+            with db.engine.begin() as connection:
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_blue_ml = num_blue_ml + :new_ml"), 
+                                   {"new_ml": barrel.ml_per_barrel})
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": barrel.price})
+        if barrel.sku == "MINI_RED_BARREL":
+            with db.engine.begin() as connection:
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_red_ml = num_red_ml + :new_ml"), 
+                                   {"new_ml": barrel.ml_per_barrel})
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": barrel.price})
 
     return "OK"
 
@@ -53,10 +63,19 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         total_potions = connection.execute(sqlalchemy.text("SELECT total_potion_num FROM global_inventory")).scalar_one()
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar_one()
     
+    # When to buy Green Barrels
     if total_potions < 10 and gold >= 100:
         return [
             {
                 "sku": "SMALL_GREEN_BARREL",
+                "quantity": 1,
+            }
+        ]
+    
+    if total_potions >= 10 and gold >= 100:
+        return[
+            {
+                "sku": "MINI_BLUE_BARREL",
                 "quantity": 1,
             }
         ]

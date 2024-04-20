@@ -71,12 +71,23 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 "quantity": 1,
             }
         ]
-    
-    if total_potions >= 10 and gold >= 100:
+    # When to buy Blue Mini Barrels
+    elif total_potions >= 10 and total_potions < 15 and gold >= 60:
         return[
             {
                 "sku": "MINI_BLUE_BARREL",
                 "quantity": 1,
             }
         ]
+    # When to buy Red Mini Barrels
+    elif total_potions >= 15 and gold >=60:
+        return[
+            {
+                "sku": "MINI_RED_BARREL",
+                "quantity": 1,
+            }
+        ]
+    else:
+        return []
+
 

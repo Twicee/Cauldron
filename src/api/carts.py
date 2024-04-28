@@ -110,7 +110,7 @@ class CartItem(BaseModel):
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
     with db.engine.begin() as connection:
-        potion_id = connection.execute(sqlalchemy.text("SELECT potion_id FROM potion_inventory WHERE sku = :sku"), {"sku": item_sku})
+        potion_id = connection.execute(sqlalchemy.text("SELECT potion_id FROM potion_inventory WHERE sku = :sku"), {"sku": item_sku}).scalar_one()
         connection.execute(sqlalchemy.text("INSERT INTO cart_items (cart_id, potion_id, quantity) VALUES (:cartid, :potionid, :quantity)"),
                            {"cartid": cart_id, "potionid": potion_id, "quantity": cart_item.quantity})
     return "OK"

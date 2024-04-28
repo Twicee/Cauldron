@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from src.api import auth
 import sqlalchemy
 from src import database as db
+import math
 
 router = APIRouter(
     prefix="/bottler",
@@ -55,35 +56,85 @@ def get_bottle_plan():
     # green potion to add.
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
-    # Initial logic: bottle all barrels into green potions.
+    # TODO: remove the hardcoding of potion ml values
 
     with db.engine.begin() as connection:
-        num_green_ml = connection.execute(sqlalchemy.text("SELECT num_green_ml FROM global_inventory")).scalar_one()
-        num_blue_ml = connection.execute(sqlalchemy.text("SELECT num_blue_ml FROM global_inventory")).scalar_one()
-        num_red_ml = connection.execute(sqlalchemy.text("SELECT num_red_ml FROM global_inventory")).scalar_one()
-    if num_green_ml >= 500:
-        return [
-                {
-                    "potion_type": [0, 100, 0, 0],
-                    "quantity": 5,
-                }
-            ]
-    if num_blue_ml >= 200:
-        return[
-            {
-                "potion_type": [0, 0, 100, 0],
-                "quantity": 2,
-            }
-        ]
-    if num_red_ml >= 200:
-        return[
-            {
-                "potion_type": [100, 0, 0, 0],
-                "quantity": 2,
-            }
-        ]
+        total_green_ml = connection.execute(sqlalchemy.text("SELECT total_green_ml FROM global_inventory")).scalar_one()
+        total_blue_ml = connection.execute(sqlalchemy.text("SELECT total_blue_ml FROM global_inventory")).scalar_one()
+        total_red_ml = connection.execute(sqlalchemy.text("SELECT total_red_ml FROM global_inventory")).scalar_one()
+        total_dark_ml = connection.execute(sqlalchemy.text("SELECT total_dark_ml FROM global_inventory")).scalar_one()
+        total_ml = connection.execute(sqlalchemy.text("SELECT total_ml FROM global_inventory")).scalar_one()
+        total_potions = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM potion_inventory")).scalar_one()
+        potions = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml FROM potion_inventory")).fetchall()
+        potions_quantity = connection.execute(sqlalchemy.text("SELECT quantity FROM potion_inventory")).fetchall()
     
-    return []
+    plan = []
+    type_of_potion = [list(row) for row in potions] # r0, g1, b2, d3, p4, br5
+    quantity_of_potions = [t[0] for t in potions_quantity] # r0, g1, b2, d3, p4, br5
+
+
+    # starting case: we make all green potions
+    if total_potions == 0 and total_green_ml:
+        max_possible_num_potions = math.floor(total_green_ml / type_of_potion[1][1]) 
+        plan.append(
+            {
+                "potion_type": type_of_potion[1],
+                "quantity": max_possible_num_potions
+            }
+        )
+    
+    #Prioritze making purple potions first 
+    if total_red_ml and total_blue_ml and quantity_of_potions[4] == 0:
+        max_possible_num_potions1 = math.floor(total_red_ml / type_of_potion[4][0])
+        max_possible_num_potions2 = math.floor(total_blue_ml / type_of_potion[4][2])
+        plan.append(
+            {
+                "potion_type": type_of_potion[4],
+                "quantity": min(max_possible_num_potions1, max_possible_num_potions2)
+            }
+        )
+
+    #red potion
+    if total_red_ml:
+        max_possible_num_potions = math.floor(total_red_ml / type_of_potion[0][0])
+        plan.append(
+            {
+                "potion_type": type_of_potion[0],
+                "quantity": max_possible_num_potions
+            }
+        )
+
+    #green potion
+    if total_green_ml:
+        max_possible_num_potions = math.floor(total_green_ml / type_of_potion[1][1])
+        plan.append(
+            {
+                "potion_type": type_of_potion[1],
+                "quantity": max_possible_num_potions
+            }
+        )
+
+    #blue potion
+    if total_blue_ml:
+        max_possible_num_potions = math.floor(total_blue_ml / type_of_potion[2][2])
+        plan.append(
+            {
+                "potion_type": type_of_potion[2],
+                "quantity": max_possible_num_potions
+            }
+        )
+    
+    #dark potion
+    if total_dark_ml:
+        max_possible_num_potions = math.floor(total_dark_ml / type_of_potion[3][3])
+        plan.append(
+            {
+                "potion_type": type_of_potion[3],
+                "quantity": max_possible_num_potions
+            }
+        )
+    
+    return plan
 
 if __name__ == "__main__":
     print(get_bottle_plan())

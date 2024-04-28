@@ -66,12 +66,13 @@ def search_orders(
         ],
     }
 
-
+#   Customer schema 
 class Customer(BaseModel):
     customer_name: str
     character_class: str
     level: int
 
+#   Just returns a list of customers according to the visit_id
 @router.post("/visits/{visit_id}")
 def post_visits(visit_id: int, customers: list[Customer]):
     """
@@ -81,27 +82,30 @@ def post_visits(visit_id: int, customers: list[Customer]):
 
     return "OK"
 
-
+#   Assigns a cart_id value of 1 to any new customer
+#   TODO: update this value dynamically for every new customer who wants a cart
 @router.post("/")
 def create_cart(new_cart: Customer):
     """ """
     return {"cart_id": 1}
 
-
+#   Cart Item Schema
 class CartItem(BaseModel):
     quantity: int
 
-
+#   Updates the quantity of a specific item in the cart
 @router.post("/{cart_id}/items/{item_sku}")
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
 
     return "OK"
 
-
+#   CartChecout Schema 
 class CartCheckout(BaseModel):
     payment: str
 
+#   Think of it like a reciept
+#   TODO: update inventory and gold dynamically
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """

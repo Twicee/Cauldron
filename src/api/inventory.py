@@ -16,7 +16,7 @@ router = APIRouter(
 def get_inventory():
     """ """
     with db.engine.begin() as connection:
-        total_potions = connection.execute(sqlalchemy.text("SELECT total_potion_num FROM global_inventory")).scalar_one()
+        total_potions = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM potion_inventory")).scalar_one()
         total_ml = connection.execute(sqlalchemy.text("SELECT total_ml FROM global_inventory")).scalar_one()
         total_gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar_one()
         
@@ -29,10 +29,23 @@ def get_capacity_plan():
     Start with 1 capacity for 50 potions and 1 capacity for 10000 ml of potion. Each additional 
     capacity unit costs 1000 gold.
     """
-
-    return {
+    with db.engine.begin() as connection:
+        total_potions = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM potion_inventory")).scalar_one()
+        total_ml = connection.execute(sqlalchemy.text("SELECT total_ml FROM global_inventory")).scalar_one()
+        total_gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar_one()
+    
+    # TODO: add some better logic once your shop grows big
+    if total_potions >= 40 and total_ml >= 9000 and total_gold >= 1800:
+        print("Shop is big now! buying more inventory space") #delete - debug purposes
+        return {
         "potion_capacity": 1,
         "ml_capacity": 1
+        }
+    else:
+        print("Shop still too small to expand") #delete - debug purposes 
+        return{
+            "potion_capacity" : 0,
+            "ml_capacity": 0,
         }
 
 class CapacityPurchase(BaseModel):
@@ -46,5 +59,11 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
     Start with 1 capacity for 50 potions and 1 capacity for 10000 ml of potion. Each additional 
     capacity unit costs 1000 gold.
     """
-
+    multiplier = 0
+    if capacity_purchase.potion_capacity >= 1:
+        multiplier = capacity_purchase.potion_capacity
+    
+    with db.engine.begin() as connection:
+        connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": multiplier * 1000})
+    print(f"You spent {multiplier * 1000} gold on upgrading your inventory")
     return "OK"

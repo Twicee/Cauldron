@@ -31,23 +31,17 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
     """ """
     print(f"barrels delievered: {barrels_delivered} order_id: {order_id}")
 
-    #upon successful purchase update num_green_ml for each potion type
+    # Upon successful purchase update num of ml for each potion type
     for barrel in barrels_delivered:
-        if barrel.sku == "SMALL_GREEN_BARREL":
-            with db.engine.begin() as connection:
-                connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_green_ml = num_green_ml + :new_ml"), 
-                                   {"new_ml": barrel.ml_per_barrel})
-                connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": barrel.price})
-        if barrel.sku == "MINI_BLUE_BARREL":
-            with db.engine.begin() as connection:
-                connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_blue_ml = num_blue_ml + :new_ml"), 
-                                   {"new_ml": barrel.ml_per_barrel})
-                connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": barrel.price})
-        if barrel.sku == "MINI_RED_BARREL":
-            with db.engine.begin() as connection:
-                connection.execute(sqlalchemy.text("UPDATE global_inventory SET num_red_ml = num_red_ml + :new_ml"), 
-                                   {"new_ml": barrel.ml_per_barrel})
-                connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": barrel.price})
+        color_type = barrel.sku.split('_')
+        color = color_type[1].lower()
+        print(color) #delete only for testing purposes 
+        
+        with db.engine.begin() as connection:
+            #need help to avoid using f strings in this situation
+            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET total_{color}_ml = total_{color}_ml + :new_ml"),
+                               {"new_ml": barrel.ml_per_barrel})
+            connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": barrel.price})
 
     return "OK"
 
@@ -58,36 +52,58 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
 def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     print(wholesale_catalog)    #displays whats for sale
-    #Inital Logic for when and what to buy:
+    plan = []   #Begin with empty plan
+    # total_amount = 0
+
     with db.engine.begin() as connection:
-        total_potions = connection.execute(sqlalchemy.text("SELECT total_potion_num FROM global_inventory")).scalar_one()
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar_one()
+        total_red_ml = connection .execute(sqlalchemy.text("SELECT total_red_ml FROM global_inventory")).scalar_one()
+        total_blue_ml = connection .execute(sqlalchemy.text("SELECT total_blue_ml FROM global_inventory")).scalar_one()
+        total_dark_ml = connection .execute(sqlalchemy.text("SELECT total_dark_ml FROM global_inventory")).scalar_one()
+        total_ml = connection.execute(sqlalchemy.text("SELECT total_ml FROM global_inventory")).scalar_one()
     
-    # When to buy Green Barrels
-    if total_potions < 10 and gold >= 100:
-        return [
+    # TODO: Implement better logic  
+    # 1. You can only buy barrels when you have gold
+    # 2. Keep a running count of how much you're spending
+    if gold <= 0:
+        return plan
+    
+    # Purchase a small green barrel
+    if total_ml == 0 and gold >= 100:
+        plan.append(
             {
                 "sku": "SMALL_GREEN_BARREL",
                 "quantity": 1,
             }
-        ]
-    # When to buy Blue Mini Barrels
-    elif total_potions >= 10 and total_potions < 15 and gold >= 60:
-        return[
+        )
+    
+    #Purchase a small red barrel
+    if total_red_ml == 0 and gold >= 100:
+        plan.append(
             {
-                "sku": "MINI_BLUE_BARREL",
+                "sku": "SMALL_RED_BARREL",
                 "quantity": 1,
             }
-        ]
-    # When to buy Red Mini Barrels
-    elif total_potions >= 15 and gold >=60:
-        return[
+        )
+    
+    #Purchase a small blue barrel
+    if total_blue_ml == 0 and gold >= 100:
+        plan.append(
             {
-                "sku": "MINI_RED_BARREL",
+                "sku": "SMALL_BLUE_BARREL",
                 "quantity": 1,
             }
-        ]
-    else:
-        return []
-
+        )
+    
+    #Purchase a small dark barrel
+    if total_dark_ml == 0 and gold >= 100:
+        plan.append(
+            {
+                "sku": "SMALL_DARK_BARREL",
+                "quantity": 1,
+            }
+        )
+    
+    print(plan) #delete - only for testing purposes 
+    return plan
 

@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from src.api import auth
 from enum import Enum
+import sqlalchemy
+from src import database as db
 
 router = APIRouter(
     prefix="/carts",
@@ -80,6 +82,11 @@ def post_visits(visit_id: int, customers: list[Customer]):
     """
     print(customers)
 
+    for customer in customers:
+        with db.engine.begin() as connection:
+            connection.execute(sqlalchemy.text("INSERT INTO customers (name, class, level) VALUES (:name, :class, :level)"), 
+                               {"name": customer.customer_name, "class": customer.character_class, "level": customer.level})
+
     return "OK"
 
 #   Assigns a cart_id value of 1 to any new customer
@@ -87,7 +94,12 @@ def post_visits(visit_id: int, customers: list[Customer]):
 @router.post("/")
 def create_cart(new_cart: Customer):
     """ """
-    return {"cart_id": 1}
+    with db.engine.begin() as connection:
+        customer_id = connection.execute(sqlalchemy.text("SELECT customer_id FROM customers WHERE name = :name AND class = :class AND level = :level"),
+                                         {"name": new_cart.customer_name, "class": new_cart.character_class, "level": new_cart.level}).scalar_one()
+        connection.execute(sqlalchemy.text("INSERT INTO carts (customer_id) VALUES (:value)"), {"value": customer_id})
+        cart_id = connection.execute(sqlalchemy.text("SELECT cart_id FROM carts")).scalar_one()
+    return {"cart_id": cart_id}
 
 #   Cart Item Schema
 class CartItem(BaseModel):
@@ -97,7 +109,10 @@ class CartItem(BaseModel):
 @router.post("/{cart_id}/items/{item_sku}")
 def set_item_quantity(cart_id: int, item_sku: str, cart_item: CartItem):
     """ """
-
+    with db.engine.begin() as connection:
+        potion_id = connection.execute(sqlalchemy.text("SELECT potion_id FROM potion_inventory WHERE sku = :sku"), {"sku": item_sku})
+        connection.execute(sqlalchemy.text("INSERT INTO cart_items (cart_id, potion_id, quantity) VALUES (:cartid, :potionid, :quantity)"),
+                           {"cartid": cart_id, "potionid": potion_id, "quantity": cart_item.quantity})
     return "OK"
 
 #   CartChecout Schema 
@@ -109,5 +124,5 @@ class CartCheckout(BaseModel):
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
-
+    # select the quantities and product price 
     return {"total_potions_bought": 1, "total_gold_paid": 50}

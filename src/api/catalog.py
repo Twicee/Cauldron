@@ -10,65 +10,17 @@ def get_catalog():
     """
     Each unique item combination must have only a single price.
     """
+    catalog = []
     with db.engine.begin() as connection:
-        green_potions = connection.execute(sqlalchemy.text("SELECT num_green_potions FROM global_inventory")).scalar_one()
-        blue_potions = connection.execute(sqlalchemy.text("SELECT num_blue_potions FROM global_inventory")).scalar_one()
-        red_potions = connection.execute(sqlalchemy.text("SELECT num_red_potions FROM global_inventory")).scalar_one()
-    #add logic so that your catalog only displays inventory > 0
-    if green_potions > 0 and blue_potions > 0 and red_potions > 0:
-        return [
-                {
-                    "sku": "GREEN_POTION_0",    #SKU = unique indentifier assigned to each distinct product in a store or inventory
-                    "name": "green potion",
-                    "quantity": green_potions,
-                    "price": 50,
-                    "potion_type": [0, 100, 0, 0],  #amount of ml we have of each potion: red, green, blue, dark liquid 
-                },
-                {
-                    "sku": "BLUE_POTION_0",
-                    "name": "blue potion",
-                    "quantity": blue_potions,
-                    "price": 50,
-                    "potion_type": [0, 0, 100, 0],
-                },
-                {
-                    "sku": "RED_POTION_0",
-                    "name": "red potion",
-                    "quantity": red_potions,
-                    "price": 50,
-                    "potion_type": [100, 0, 0, 0],
-                }
-        ]
-    # Bad logic fix later: will only sell one item you have and in order it appears
-    elif green_potions > 0:
-        return[
-            {
-                "sku": "GREEN_POTION_0",
-                "name": "green potion",
-                "quantity": green_potions,
-                "price": 50,
-                "potion_type": [0, 100, 0, 0], 
-            }
-        ]
-    elif blue_potions > 0:
-        return[
-            {
-                "sku": "BLUE_POTION_0",
-                "name": "blue potion",
-                "quantity": blue_potions,
-                "price": 50,
-                "potion_type": [0, 0, 100, 0],
-            },
-        ]
-    elif red_potions > 0:
-        return[
-            {
-                "sku": "RED_POTION_0",
-                "name": "red potion",
-                "quantity": red_potions,
-                "price": 50,
-                "potion_type": [100, 0, 0, 0],
-            }
-        ]
-    else:
-        return []
+        products = connection.execute(sqlalchemy.text("SELECT sku, name, quantity, price, ARRAY[num_red_ml, num_green_ml, num_blue_ml, num_dark_ml] AS potion_type FROM potion_inventory WHERE quantity > 0")).fetchall()
+    for row in products:
+        catalog_entry = {
+            "sku": row.sku,
+            "name": row.name,
+            "quantity": row.quantity,
+            "price": row.price,
+            "potion_type": row.potion_type
+        }
+        catalog.append(catalog_entry)
+    print("Here is our catalog: " + catalog)
+    return catalog

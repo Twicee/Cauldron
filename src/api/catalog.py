@@ -22,5 +22,5 @@ def get_catalog():
             "potion_type": row.potion_type
         }
         catalog.append(catalog_entry)
-    print("Here is our catalog: " + catalog)
+    print(catalog)
     return catalog

@@ -38,7 +38,6 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
         print(color) #delete only for testing purposes 
         
         with db.engine.begin() as connection:
-            #need help to avoid using f strings in this situation
             connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET total_{color}_ml = total_{color}_ml + :new_ml"),
                                {"new_ml": barrel.ml_per_barrel})
             connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": barrel.price})
@@ -76,6 +75,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 "quantity": 1,
             }
         )
+        gold = gold - 100
     
     #Purchase a small red barrel
     if total_red_ml == 0 and gold >= 100:
@@ -85,6 +85,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 "quantity": 1,
             }
         )
+        gold = gold - 100
     
     #Purchase a small blue barrel
     if total_blue_ml == 0 and gold >= 100:
@@ -94,7 +95,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 "quantity": 1,
             }
         )
-    
+        gold = gold - 100
     #Purchase a small dark barrel
     if total_dark_ml == 0 and gold >= 100:
         plan.append(
@@ -103,6 +104,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
                 "quantity": 1,
             }
         )
+        gold = gold - 100
     
     print(plan) #delete - only for testing purposes 
     return plan

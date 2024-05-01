@@ -45,11 +45,11 @@ def get_bottle_plan():
     # green potion to add.
     # Expressed in integers from 1 to 100 that must sum up to 100.
 
-    # TODO: remove the hardcoding of potion ml values
+    # TODO: add better logic for determing the priority of potions to be made first 
 
     with db.engine.begin() as connection:
         total_red_ml, total_green_ml, total_blue_ml, total_dark_ml = connection.execute(sqlalchemy.text("SELECT total_red_ml, total_green_ml, total_blue_ml, total_dark_ml FROM global_inventory")).fetchone()
-        potions = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, quantity FROM potion_inventory ORDER BY random()")).fetchall()
+        potions = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml FROM potion_inventory ORDER BY random()")).fetchall()
     
     plan = []
 
@@ -57,25 +57,31 @@ def get_bottle_plan():
         # if I have enough ml of each type to make the potion and spare capacity in potion inventory, make potions
         # calculate max_possible_num_potions
         # potion = (r, g, b, d, q)
-        num_red_ml, num_green_ml, num_blue_ml, num_dark_ml, = potion
-        max_possible_red, max_possible_green, max_possible_blue, max_possible_dark = 0
-        if num_red_ml != 0 and total_red_ml >= num_red_ml:
+        num_red_ml, num_green_ml, num_blue_ml, num_dark_ml = potion
+        max_possible_red = max_possible_green = max_possible_blue = max_possible_dark = 1000
+        if num_red_ml != 0:
             max_possible_red = total_red_ml // num_red_ml
-        if num_green_ml != 0 and total_green_ml >= num_green_ml:
+        if num_green_ml != 0:
             max_possible_green = total_green_ml // num_green_ml
-        if num_blue_ml != 0 and total_blue_ml >= num_blue_ml:
+        if num_blue_ml != 0:
             max_possible_blue = total_blue_ml // num_blue_ml
-        if num_dark_ml != 0 and total_dark_ml >= num_dark_ml:
+        if num_dark_ml != 0:
             max_possible_dark = total_dark_ml // num_dark_ml
         
         max = [max_possible_red, max_possible_green, max_possible_blue, max_possible_dark]
-        max_possible_num_potions = [value for value in max if value > 0]
+        max_possible_num_potions = min(max)
+        
+        total_red_ml = total_red_ml - (max_possible_num_potions * num_red_ml)
+        total_green_ml = total_green_ml - (max_possible_num_potions * num_green_ml)
+        total_blue_ml= total_blue_ml - (max_possible_num_potions * num_blue_ml)
+        total_dark_ml= total_dark_ml - (max_possible_num_potions * num_dark_ml)
 
-        plan.append({
-            "potion_type": [num_red_ml, num_green_ml, num_blue_ml, num_dark_ml],
-            "quantity": min(max_possible_num_potions)
-        })
- 
+        if max_possible_num_potions:
+            plan.append({
+                        "potion_type": [num_red_ml, num_green_ml, num_blue_ml, num_dark_ml],
+                        "quantity": max_possible_num_potions
+                    })
+    print(plan)
     return plan
 
 if __name__ == "__main__":

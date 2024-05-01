@@ -98,7 +98,7 @@ def create_cart(new_cart: Customer):
         customer_id = connection.execute(sqlalchemy.text("SELECT customer_id FROM customers WHERE name = :name AND class = :class AND level = :level"),
                                          {"name": new_cart.customer_name, "class": new_cart.character_class, "level": new_cart.level}).scalar_one()
         connection.execute(sqlalchemy.text("INSERT INTO carts (customer_id) VALUES (:value)"), {"value": customer_id})
-        cart_id = connection.execute(sqlalchemy.text("SELECT cart_id FROM carts")).scalar_one()
+        cart_id = connection.execute(sqlalchemy.text("SELECT cart_id FROM carts WHERE customer_id = :customerid"), {"customerid": customer_id}).scalar_one()
     return {"cart_id": cart_id}
 
 #   Cart Item Schema
@@ -126,7 +126,7 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """
     # select the quantities and product price
     with db.engine.begin() as connection:
-        items = connection.execute(sqlalchemy.text("SELECT product_id, quantity FROM cart_items WHERE cart_id = :cartid"), {"cartid": cart_id}).fetchall()
+        items = connection.execute(sqlalchemy.text("SELECT potion_id, quantity FROM cart_items WHERE cart_id = :cartid"), {"cartid": cart_id}).fetchall()
     
     total_sum = 0
     total_potions = 0

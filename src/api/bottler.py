@@ -51,6 +51,7 @@ def get_bottle_plan():
         total_red_ml, total_green_ml, total_blue_ml, total_dark_ml = connection.execute(sqlalchemy.text("SELECT total_red_ml, total_green_ml, total_blue_ml, total_dark_ml FROM global_inventory")).fetchone()
         potions = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml FROM potion_inventory ORDER BY random()")).fetchall()
         total_potions = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM potion_inventory")).scalar_one()
+        potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM global_inventory")).scalar_one()
     
     plan = []
 
@@ -77,7 +78,7 @@ def get_bottle_plan():
         total_blue_ml= total_blue_ml - (max_possible_num_potions * num_blue_ml)
         total_dark_ml= total_dark_ml - (max_possible_num_potions * num_dark_ml)
 
-        if max_possible_num_potions and (total_potions + max_possible_num_potions) <= total_potions:
+        if max_possible_num_potions and (total_potions + max_possible_num_potions) <= potion_capacity:
             plan.append({
                         "potion_type": [num_red_ml, num_green_ml, num_blue_ml, num_dark_ml],
                         "quantity": max_possible_num_potions

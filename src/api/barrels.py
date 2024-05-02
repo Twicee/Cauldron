@@ -57,7 +57,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     with db.engine.begin() as connection:
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar_one()
         total_ml, ml_capacity = connection.execute(sqlalchemy.text("SELECT total_ml, ml_capacity FROM global_inventory")).fetchone()
-    
+
     # TODO: Implement better logic  
     # 1. You can only buy barrels when you have gold
     # 2. Keep a running count of how much you're spending

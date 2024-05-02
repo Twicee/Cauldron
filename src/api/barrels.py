@@ -56,10 +56,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
     with db.engine.begin() as connection:
         gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar_one()
-        total_red_ml = connection .execute(sqlalchemy.text("SELECT total_red_ml FROM global_inventory")).scalar_one()
-        total_blue_ml = connection .execute(sqlalchemy.text("SELECT total_blue_ml FROM global_inventory")).scalar_one()
-        total_dark_ml = connection .execute(sqlalchemy.text("SELECT total_dark_ml FROM global_inventory")).scalar_one()
-        total_ml = connection.execute(sqlalchemy.text("SELECT total_ml FROM global_inventory")).scalar_one()
+        total_ml, ml_capacity = connection.execute(sqlalchemy.text("SELECT total_ml FROM global_inventory")).fetchone()
     
     # TODO: Implement better logic  
     # 1. You can only buy barrels when you have gold
@@ -68,7 +65,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         return plan
     
     # Purchase a small green barrel
-    if gold >= 100:
+    if gold >= 100 and (total_ml + 500) <= ml_capacity:
         plan.append(
             {
                 "sku": "SMALL_GREEN_BARREL",
@@ -78,7 +75,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         gold = gold - 100
     
     #Purchase a small red barrel
-    if gold >= 100:
+    if gold >= 100 and (total_ml + 500) <= ml_capacity:
         plan.append(
             {
                 "sku": "SMALL_RED_BARREL",
@@ -88,7 +85,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         gold = gold - 100
     
     #Purchase a small blue barrel
-    if gold >= 120:
+    if gold >= 120 and (total_ml + 500) <= ml_capacity:
         plan.append(
             {
                 "sku": "SMALL_BLUE_BARREL",
@@ -96,8 +93,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             }
         )
         gold = gold - 120
-    #Purchase a small dark barrel
-    if gold >= 750:
+    #Purchase a large dark barrel
+    if gold >= 750 and (total_ml + 10000) <= ml_capacity:
         plan.append(
             {
                 "sku": "LARGE_DARK_BARREL",

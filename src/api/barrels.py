@@ -68,7 +68,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         return plan
     
     # Purchase a small green barrel
-    if total_ml == 0 and gold >= 100:
+    if gold >= 100:
         plan.append(
             {
                 "sku": "SMALL_GREEN_BARREL",
@@ -78,7 +78,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         gold = gold - 100
     
     #Purchase a small red barrel
-    if total_red_ml == 0 and gold >= 100:
+    if gold >= 100:
         plan.append(
             {
                 "sku": "SMALL_RED_BARREL",
@@ -88,7 +88,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         gold = gold - 100
     
     #Purchase a small blue barrel
-    if total_blue_ml == 0 and gold >= 100:
+    if gold >= 100:
         plan.append(
             {
                 "sku": "SMALL_BLUE_BARREL",
@@ -97,7 +97,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         )
         gold = gold - 100
     #Purchase a small dark barrel
-    if total_dark_ml == 0 and gold >= 100:
+    if gold >= 100:
         plan.append(
             {
                 "sku": "SMALL_DARK_BARREL",

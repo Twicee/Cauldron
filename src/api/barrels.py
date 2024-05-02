@@ -88,23 +88,23 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         gold = gold - 100
     
     #Purchase a small blue barrel
-    if gold >= 100:
+    if gold >= 120:
         plan.append(
             {
                 "sku": "SMALL_BLUE_BARREL",
                 "quantity": 1,
             }
         )
-        gold = gold - 100
+        gold = gold - 120
     #Purchase a small dark barrel
-    if gold >= 100:
+    if gold >= 750:
         plan.append(
             {
-                "sku": "SMALL_DARK_BARREL",
+                "sku": "LARGE_DARK_BARREL",
                 "quantity": 1,
             }
         )
-        gold = gold - 100
+        gold = gold - 750
     
     print(plan) #delete - only for testing purposes 
     return plan

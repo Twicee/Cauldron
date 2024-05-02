@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
+import sqlalchemy.exc
 from src.api import auth
 from enum import Enum
 import sqlalchemy
@@ -84,8 +85,13 @@ def post_visits(visit_id: int, customers: list[Customer]):
 
     for customer in customers:
         with db.engine.begin() as connection:
-            connection.execute(sqlalchemy.text("INSERT INTO customers (name, class, level) VALUES (:name, :class, :level)"), 
-                               {"name": customer.customer_name, "class": customer.character_class, "level": customer.level})
+            # TODO: do not insert repeat customers
+            try:
+                connection.execute(sqlalchemy.text("INSERT INTO customers (name, class, level) VALUES (:name, :class, :level)"), 
+                                    {"name": customer.customer_name, "class": customer.character_class, "level": customer.level})
+            except sqlalchemy.exc.IntegrityError as e:
+                print(f"Customer {customer.customer_name} was not inserted. Reason: {str(e)}")
+                continue
 
     return "OK"
 
@@ -120,7 +126,8 @@ class CartCheckout(BaseModel):
     payment: str
 
 #   Think of it like a reciept
-#   TODO: update inventory and gold dynamically
+#   Since multiple checkout calls may be done at a single time we may have the case where one instance is working on a 
+#    older value that has not updated for that instance. the solution? atomic operations - transactions 
 @router.post("/{cart_id}/checkout")
 def checkout(cart_id: int, cart_checkout: CartCheckout):
     """ """

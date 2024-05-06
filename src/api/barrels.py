@@ -38,9 +38,16 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
         print(color) #delete only for testing purposes 
         
         with db.engine.begin() as connection:
-            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET total_{color}_ml = total_{color}_ml + :new_ml"),
-                               {"new_ml": barrel.ml_per_barrel})
-            connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": barrel.price})
+            # new transaction entry
+            transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"), 
+                               {"description": f"PotionsHub spent {barrel.price} gold on {barrel.quantity} ({color}) {'barrel' if barrel.quantity == 1 else 'barrels'}"}).scalar_one()
+            # new ml_ledger entry
+            connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (transaction_id, color, change) VALUES (:transaction, :color, :change)"), 
+                               {"transaction": transaction_id, "color": {color}, "change": barrel.ml_per_barrel})
+            
+            # new gold ledger entry
+            connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, change) VALUES (:transaction, :change)", 
+                                               {"transaction": transaction_id, "change": -(barrel.quantity * barrel.price)}))
 
     return "OK"
 
@@ -55,8 +62,9 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     # total_amount = 0
 
     with db.engine.begin() as connection:
-        gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar_one()
-        total_ml, ml_capacity = connection.execute(sqlalchemy.text("SELECT total_ml, ml_capacity FROM global_inventory")).fetchone()
+        gold = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM gold_ledger")).scalar_one()
+        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM ml_ledger")).scalar_one()
+        ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_capacity FROM global_inventory")).scalar_one()
 
     # TODO: Implement better logic  
     # 1. You can only buy barrels when you have gold
@@ -73,6 +81,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             }
         )
         gold = gold - 100
+        total_ml = total_ml + 500
     
     #Purchase a small red barrel
     if gold >= 100 and (total_ml + 500) <= ml_capacity:
@@ -83,6 +92,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             }
         )
         gold = gold - 100
+        total_ml = total_ml + 500
     
     #Purchase a small blue barrel
     if gold >= 120 and (total_ml + 500) <= ml_capacity:
@@ -93,6 +103,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             }
         )
         gold = gold - 120
+        total_ml = total_ml + 500
+
     #Purchase a large dark barrel
     if gold >= 750 and (total_ml + 10000) <= ml_capacity:
         plan.append(
@@ -102,6 +114,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             }
         )
         gold = gold - 750
+        total_ml = total_ml + 10000
     
     print(plan) #delete - only for testing purposes 
     return plan

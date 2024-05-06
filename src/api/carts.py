@@ -85,26 +85,18 @@ def post_visits(visit_id: int, customers: list[Customer]):
 
     for customer in customers:
         with db.engine.begin() as connection:
-            # TODO: do not insert repeat customers
-            try:
-                connection.execute(sqlalchemy.text("INSERT INTO customers (name, class, level) VALUES (:name, :class, :level)"), 
+            connection.execute(sqlalchemy.text("INSERT INTO customers (name, class, level) VALUES (:name, :class, :level) ON CONFLICT ON CONSTRAINT unique_customer DO NOTHING"), 
                                     {"name": customer.customer_name, "class": customer.character_class, "level": customer.level})
-            except sqlalchemy.exc.IntegrityError as e:
-                print(f"Customer {customer.customer_name} was not inserted. Reason: {str(e)}")
-                continue
-
     return "OK"
 
 #   Assigns a cart_id value of 1 to any new customer
-#   TODO: update this value dynamically for every new customer who wants a cart
 @router.post("/")
 def create_cart(new_cart: Customer):
     """ """
     with db.engine.begin() as connection:
         customer_id = connection.execute(sqlalchemy.text("SELECT customer_id FROM customers WHERE name = :name AND class = :class AND level = :level"),
                                          {"name": new_cart.customer_name, "class": new_cart.character_class, "level": new_cart.level}).scalar_one()
-        connection.execute(sqlalchemy.text("INSERT INTO carts (customer_id) VALUES (:value)"), {"value": customer_id})
-        cart_id = connection.execute(sqlalchemy.text("SELECT cart_id FROM carts WHERE customer_id = :customerid"), {"customerid": customer_id}).scalar_one()
+        cart_id = connection.execute(sqlalchemy.text("INSERT INTO carts (customer_id) VALUES (:value) RETURNING cart_id") , {"value": customer_id}).scalar_one()
     return {"cart_id": cart_id}
 
 #   Cart Item Schema
@@ -139,13 +131,19 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
     total_potions = 0
     for item in items:
         with db.engine.begin() as connection:
+            customer_name = connection.execute(sqlalchemy.text("SELECT c.name FROM carts AS ct JOIN customers AS c ON ct.customer_id = c.customer_id WHERE ct.cart_id = :cartid"),
+                                               {"cartid": cart_id}).scalar_one()
+            customer_id = connection.execute(sqlalchemy.text("SELECT customer_id FROM carts WHERE cart_id = :cartid"), {"cartid": cart_id}).scalar_one()
             price = connection.execute(sqlalchemy.text("SELECT price FROM potion_inventory WHERE potion_id = :potionid"), {"potionid": item[0]}).scalar_one()
-            connection.execute(sqlalchemy.text("UPDATE potion_inventory SET quantity = quantity - :quantity WHERE potion_id = :potionid"), 
-                               {"quantity": item[1], "potionid": item[0]})
+            potion_name = connection.execute(sqlalchemy.text("SELECT name FROM potion_inventory WHERE potion_id = :potionid"), {"potionid": item[0]}).scalar_one()
+    
         total_sum = total_sum + (price * item[1])
         total_potions = total_potions + item[1]
-    
-    with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold + :totalsum"), {"totalsum": total_sum}) 
-
+        transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"),
+                                        {"description": f"{customer_name} paid {price * item.quantity} gold for {item.quantity} {potion_name} {'potion' if item.quantity == 1 else 'potions'}"}).scalar_one() 
+        connection.execute(sqlalchemy.text("INSERT INTO potion_ledger (transaction_id, customer_id, potion_id, change) VALUES (:transaction, :customerid, :potionid, :change)"),
+                           {"transaction": transaction_id, "customerid": customer_id, "potionid": item.potion_id, "change": -(item.quantity)})
+        connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, customer_id, change) VALUES (:transaction, :customerid, :change)", 
+                                           {"transaction": transaction_id, "customerid": customer_id, "change": (price * item[1])}))
+        
     return {"total_potions_bought": total_potions, "total_gold_paid": total_sum}

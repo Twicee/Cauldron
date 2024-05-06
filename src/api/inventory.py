@@ -16,9 +16,9 @@ router = APIRouter(
 def get_inventory():
     """ """
     with db.engine.begin() as connection:
-        total_potions = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM potion_inventory")).scalar_one()
-        total_ml = connection.execute(sqlalchemy.text("SELECT total_ml FROM global_inventory")).scalar_one()
-        total_gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar_one()
+        total_potions = connection.execute(sqlalchemy.text("SUM(change) FROM potion_ledger")).scalar_one()
+        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM ml_ledger")).scalar_one()
+        total_gold = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM gold_ledger")).scalar_one()
         
     return {"number_of_potions": total_potions, "ml_in_barrels": total_ml, "gold": total_gold}
 
@@ -30,16 +30,29 @@ def get_capacity_plan():
     capacity unit costs 1000 gold.
     """
     with db.engine.begin() as connection:
-        total_potions = connection.execute(sqlalchemy.text("SELECT SUM(quantity) FROM potion_inventory")).scalar_one()
-        total_ml = connection.execute(sqlalchemy.text("SELECT total_ml FROM global_inventory")).scalar_one()
-        total_gold = connection.execute(sqlalchemy.text("SELECT gold FROM global_inventory")).scalar_one()
-    
-    # TODO: add some better logic once your shop grows big
-    if total_potions >= 40 and total_ml >= 9000 and total_gold >= 1800:
-        print("Shop is big now! buying more inventory space") #delete - debug purposes
+        total_potions = connection.execute(sqlalchemy.text("SUM(change) FROM potion_ledger")).scalar_one()
+        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM ml_ledger")).scalar_one()
+        total_gold = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM gold_ledger")).scalar_one()
+
+    # TODO: add some better logic once your shop grows big and update capacities in db 
+    if total_potions >= 5 and total_gold >= 1000:
+        total_potions = total_potions - 1
+        total_gold = total_gold - 1000
+        if total_potions >= 5 and total_gold >= 1000:
+            print("Shop is big now! buying more inventory space for potions and ml")
+            with db.engine.begin() as connection:
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET potion_capacity = potion_capacity + 50"))
+                connection.execute(sqlalchemy.text("UPDATE global_inventory SET ml_capacity = ml_capacity + 10000"))
+            return {
+            "potion_capacity": 1,
+            "ml_capacity": 1
+            }
+        print("Shop is big now! buying more inventory space for potions") #delete - debug purposes
+        with db.engine.begin() as connection:
+            connection.execute(sqlalchemy.text("UPDATE global_inventory SET potion_capacity = potion_capacity + 50"))
         return {
         "potion_capacity": 1,
-        "ml_capacity": 1
+        "ml_capacity": 0
         }
     else:
         print("Shop still too small to expand") #delete - debug purposes 
@@ -59,11 +72,17 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
     Start with 1 capacity for 50 potions and 1 capacity for 10000 ml of potion. Each additional 
     capacity unit costs 1000 gold.
     """
-    multiplier = 0
-    if capacity_purchase.potion_capacity >= 1:
-        multiplier = capacity_purchase.potion_capacity
-    
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("UPDATE global_inventory SET gold = gold - :cost"), {"cost": multiplier * 1000})
-    print(f"You spent {multiplier * 1000} gold on upgrading your inventory")
+        if capacity_purchase.potion_capacity:
+            transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"),
+                                                {"description": f"PotionsHub spent {capacity_purchase.potion_capacity * 1000} gold upgrading their potion capacity"}).scalar_one()
+            connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, change) VALUES (:transaction, :change)"), 
+                               {"transaction": transaction_id, "change": -(capacity_purchase.potion_capacity * 1000)})
+        if capacity_purchase.ml_capacity:
+            transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"),
+                                                {"description": f"PotionsHub spent {capacity_purchase.ml_capacity * 1000} gold upgrading their ml capacity"}).scalar_one()
+            connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, change) VALUES (:transaction, :change)"), 
+                               {"transaction": transaction_id, "change": -(capacity_purchase.ml_capacity * 1000)})
+
+    print(f"You spent gold on upgrading your inventory")
     return "OK"

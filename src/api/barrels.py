@@ -62,8 +62,8 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     # total_amount = 0
 
     with db.engine.begin() as connection:
-        gold = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM gold_ledger")).scalar_one()
-        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM ml_ledger")).scalar_one()
+        gold = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM gold_ledger")).scalar_one()
+        total_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger")).scalar_one()
         ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_capacity FROM global_inventory")).scalar_one()
 
     # TODO: Implement better logic  

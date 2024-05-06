@@ -74,12 +74,12 @@ def get_bottle_plan():
     # TODO: add better logic for determing the priority of potions to be made first 
 
     with db.engine.begin() as connection:    
-        total_red_ml = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM ml_ledger WHERE color = 'red'")).scalar_one()
-        total_green_ml = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM ml_ledger WHERE color = 'green'")).scalar_one()
-        total_blue_ml = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM ml_ledger WHERE color = 'blue'")).scalar_one()
-        total_dark_ml = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM ml_ledger WHERE color = 'dark'")).scalar_one()
+        total_red_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger WHERE color = 'red'")).scalar_one()
+        total_green_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger WHERE color = 'green'")).scalar_one()
+        total_blue_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger WHERE color = 'blue'")).scalar_one()
+        total_dark_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger WHERE color = 'dark'")).scalar_one()
         potions = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml FROM potion_inventory ORDER BY random()")).fetchall()
-        total_potions = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM potion_ledger")).scalar_one() 
+        total_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger")).scalar_one() 
         potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM global_inventory")).scalar_one()
     
     plan = []

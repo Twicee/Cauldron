@@ -16,8 +16,8 @@ router = APIRouter(
 def get_inventory():
     """ """
     with db.engine.begin() as connection:
-        total_potions = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM potion_ledger")).scalar_one()
-        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM ml_ledger")).scalar_one()
+        total_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger")).scalar_one()
+        total_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger")).scalar_one()
         total_gold = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM gold_ledger")).scalar_one()
         
     return {"number_of_potions": total_potions, "ml_in_barrels": total_ml, "gold": total_gold}
@@ -30,9 +30,9 @@ def get_capacity_plan():
     capacity unit costs 1000 gold.
     """
     with db.engine.begin() as connection:
-        total_potions = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM potion_ledger")).scalar_one()
-        total_ml = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM ml_ledger")).scalar_one()
-        total_gold = connection.execute(sqlalchemy.text("SELECT SUM(change) FROM gold_ledger")).scalar_one()
+        total_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger")).scalar_one()
+        total_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger")).scalar_one()
+        total_gold = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM gold_ledger")).scalar_one()
     
     # TODO: add some better logic once your shop grows big and update capacities in db 
     if total_potions >= 5 and total_gold >= 1000:

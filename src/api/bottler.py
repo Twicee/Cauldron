@@ -51,13 +51,13 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
 
             #ml_ledger entry
             if len(potions_to_use) == 1:
-                connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (transaction_id, color, change) VALUE (:transaction, :color, :change)"), 
-                                                {"transaction": transaction_id, "color": color_mapping[potions_to_use[0]], "change": potions.quantity * potions.potion_type[potions_to_use[0]] })
+                connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (transaction_id, color, change) VALUES (:transaction, :color, :change)"), 
+                                                {"transaction": transaction_id, "color": color_mapping[potions_to_use[0]], "change": -(potions.quantity * potions.potion_type[potions_to_use[0]]) })
             if len(potions_to_use) == 2:
-                connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (transaction_id, color, change) VALUE (:transaction, :color, :change)"), 
-                                                {"transaction": transaction_id, "color": color_mapping[potions_to_use[0]], "change": potions.quantity * potions.potion_type[potions_to_use[0]] })
-                connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (transaction_id, color, change) VALUE (:transaction, :color, :change)"), 
-                                                {"transaction": transaction_id, "color": color_mapping[potions_to_use[1]], "change": potions.quantity * potions.potion_type[potions_to_use[1]] })            
+                connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (transaction_id, color, change) VALUES (:transaction, :color, :change)"), 
+                                                {"transaction": transaction_id, "color": color_mapping[potions_to_use[0]], "change": -(potions.quantity * potions.potion_type[potions_to_use[0]]) })
+                connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (transaction_id, color, change) VALUES (:transaction, :color, :change)"), 
+                                                {"transaction": transaction_id, "color": color_mapping[potions_to_use[1]], "change": -(potions.quantity * potions.potion_type[potions_to_use[1]]) })            
     
     return "OK"
 

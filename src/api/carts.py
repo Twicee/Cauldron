@@ -136,14 +136,14 @@ def checkout(cart_id: int, cart_checkout: CartCheckout):
             customer_id = connection.execute(sqlalchemy.text("SELECT customer_id FROM carts WHERE cart_id = :cartid"), {"cartid": cart_id}).scalar_one()
             price = connection.execute(sqlalchemy.text("SELECT price FROM potion_inventory WHERE potion_id = :potionid"), {"potionid": item[0]}).scalar_one()
             potion_name = connection.execute(sqlalchemy.text("SELECT name FROM potion_inventory WHERE potion_id = :potionid"), {"potionid": item[0]}).scalar_one()
-    
+            transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"),
+                                            {"description": f"{customer_name} paid {price * item.quantity} gold for {item.quantity} {potion_name} {'potion' if item.quantity == 1 else 'potions'}"}).scalar_one() 
+            connection.execute(sqlalchemy.text("INSERT INTO potion_ledger (transaction_id, customer_id, potion_id, change) VALUES (:transaction, :customerid, :potionid, :change)"),
+                                {"transaction": transaction_id, "customerid": customer_id, "potionid": item.potion_id, "change": -(item.quantity)})
+            connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, customer_id, change) VALUES (:transaction, :customerid, :change)"),
+                                                {"transaction": transaction_id, "customerid": customer_id, "change": (price * item[1])})
         total_sum = total_sum + (price * item[1])
         total_potions = total_potions + item[1]
-        transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"),
-                                        {"description": f"{customer_name} paid {price * item.quantity} gold for {item.quantity} {potion_name} {'potion' if item.quantity == 1 else 'potions'}"}).scalar_one() 
-        connection.execute(sqlalchemy.text("INSERT INTO potion_ledger (transaction_id, customer_id, potion_id, change) VALUES (:transaction, :customerid, :potionid, :change)"),
-                           {"transaction": transaction_id, "customerid": customer_id, "potionid": item.potion_id, "change": -(item.quantity)})
-        connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, customer_id, change) VALUES (:transaction, :customerid, :change)", 
-                                           {"transaction": transaction_id, "customerid": customer_id, "change": (price * item[1])}))
+            
         
     return {"total_potions_bought": total_potions, "total_gold_paid": total_sum}

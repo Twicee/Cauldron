@@ -82,6 +82,4 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
                                                 {"description": f"PotionsHub spent {capacity_purchase.ml_capacity * 1000} gold upgrading their ml capacity"}).scalar_one()
             connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, change) VALUES (:transaction, :change)"), 
                                {"transaction": transaction_id, "change": -(capacity_purchase.ml_capacity * 1000)})
-
-    print(f"You spent gold on upgrading your inventory")
     return "OK"

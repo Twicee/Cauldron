@@ -25,7 +25,7 @@ def reset():
         connection.execute(sqlalchemy.text("DELETE FROM ml_ledger"))
         connection.execute(sqlalchemy.text("DELETE FROM potion_ledger"))
         connection.execute(sqlalchemy.text("DELETE FROM transactions"))
-        transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"), {"description": "PotionsHub has a starting balance of 100 gold"})
+        transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"), {"description": "PotionsHub has a starting balance of 100 gold"}).scalar_one()
         connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, change) VALUES (:transaction, :change)"), {"transaction": transaction_id, "change": 100})
     return "OK"
 

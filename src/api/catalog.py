@@ -12,7 +12,14 @@ def get_catalog():
     """
     catalog = []
     with db.engine.begin() as connection:
-        products = connection.execute(sqlalchemy.text("SELECT sku, name, quantity, price, ARRAY[num_red_ml, num_green_ml, num_blue_ml, num_dark_ml] AS potion_type FROM potion_inventory WHERE quantity > 0")).fetchall()
+        products = connection.execute(sqlalchemy.text("""
+                                                    SELECT pi.sku, pi.name, SUM(pl.change) AS quantity, pi.price,
+                                                      ARRAY[pi.num_red_ml, pi.num_green_ml, pi.num_blue_ml, pi.num_dark_ml] AS potion_type
+                                                      FROM potion_inventory pi
+                                                      JOIN potion_ledger pl ON pi.potion_id = pl.potion_id
+                                                      GROUP BY pi.sku, pi.name, pi.price, pi.num_red_ml, pi.num_green_ml, pi.num_blue_ml, pi.num_dark_ml
+                                                      HAVING SUM(pl.change) > 0
+                                                      """)).fetchall()
     for row in products:
         catalog_entry = {
             "sku": row.sku,

@@ -18,9 +18,14 @@ def reset():
     """
     # TODO: resest potion capacity and ml_capacity and carts
     with db.engine.begin() as connection:
-        connection.execute(sqlalchemy.text("UPDATE global_inventory SET total_green_ml = 0, total_blue_ml = 0, total_red_ml = 0, total_dark_ml = 0, gold = 100, potion_capacity = 50, ml_capacity = 10000"))
-        connection.execute(sqlalchemy.text("UPDATE potion_inventory SET quantity = 0"))
+        connection.execute(sqlalchemy.text("UPDATE global_inventory SET potion_capacity = 50, ml_capacity = 10000"))
         connection.execute(sqlalchemy.text("DELETE FROM cart_items"))
         connection.execute(sqlalchemy.text("DELETE FROM carts"))
+        connection.execute(sqlalchemy.text("DELETE FROM gold_ledger"))
+        connection.execute(sqlalchemy.text("DELETE FROM ml_ledger"))
+        connection.execute(sqlalchemy.text("DELETE FROM potion_ledger"))
+        connection.execute(sqlalchemy.text("DELETE FROM transactions"))
+        transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"), {"description": "PotionsHub has a starting balance of 100 gold"})
+        connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, change) VALUES (:transaction, :change)"), {"transaction": transaction_id, "change": 100})
     return "OK"
 

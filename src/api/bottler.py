@@ -89,7 +89,7 @@ def get_bottle_plan():
         # calculate max_possible_num_potions
         # potion = (r, g, b, d, q)
         num_red_ml, num_green_ml, num_blue_ml, num_dark_ml = potion
-        max_possible_red = max_possible_green = max_possible_blue = max_possible_dark = 1000
+        max_possible_red = max_possible_green = max_possible_blue = max_possible_dark = 10000
         if num_red_ml != 0:
             max_possible_red = total_red_ml // num_red_ml
         if num_green_ml != 0:
@@ -113,6 +113,19 @@ def get_bottle_plan():
                         "potion_type": [num_red_ml, num_green_ml, num_blue_ml, num_dark_ml],
                         "quantity": max_possible_num_potions
                     })
+        else:
+            if max_possible_num_potions == 0:
+                continue
+            max_possible_num_potions = potion_capacity - total_potions
+            if max_possible_num_potions == 0:
+                continue
+            total_potions = total_potions + max_possible_num_potions
+            plan.append(
+                {
+                    "potion_type": [num_red_ml, num_green_ml, num_blue_ml, num_dark_ml],
+                    "quantity": max_possible_num_potions
+                }
+            )
     print(plan)
     return plan
 

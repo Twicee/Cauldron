@@ -34,10 +34,10 @@ def get_capacity_plan():
         total_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger")).scalar_one()
         total_gold = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM gold_ledger")).scalar_one()
     
-    # TODO: add some better logic once your shop grows big and update capacities in db 
-    if total_potions >= 5 and total_gold >= 1000:
+    # TODO: Increment the total number of potions so that it covers buying at least two barrels at the respective size of shop
+    if total_potions >= 15 and total_gold >= 1000:
         total_gold = total_gold - 1000
-        if total_potions >= 2 and total_gold >= 1000:
+        if total_gold >= 1000:
             print("Shop is big now! buying more inventory space for potions and ml")
             with db.engine.begin() as connection:
                 connection.execute(sqlalchemy.text("UPDATE global_inventory SET potion_capacity = potion_capacity + 50"))
@@ -54,7 +54,7 @@ def get_capacity_plan():
             "ml_capacity": 0
         }
     else:
-        print("Shop still too small to expand") #delete - debug purposes 
+        print("Shop not ready to expand") #delete - debug purposes 
         return{
             "potion_capacity" : 0,
             "ml_capacity": 0,

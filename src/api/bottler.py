@@ -40,7 +40,7 @@ def post_deliver_bottles(potions_delivered: list[PotionInventory], order_id: int
             
             # potion of two colors
             if len(potions_to_use) == 2:        
-                description = f"PotionsHub used {potions.quantity * potions.potion_type[potions_to_use[0]]} {color_mapping[potions_to_use[0]]} ml and {potions.quantity * potions.potion_type[potions_to_use[1]]} {color_mapping[potions_to_use[1]]} to make {potions.quantity} {potion_name} {'potion' if potions.quantity == 1 else 'potions'}"
+                description = f"PotionsHub used {potions.quantity * potions.potion_type[potions_to_use[0]]} {color_mapping[potions_to_use[0]]} ml and {potions.quantity * potions.potion_type[potions_to_use[1]]} {color_mapping[potions_to_use[1]]} ml to make {potions.quantity} {potion_name} {'potion' if potions.quantity == 1 else 'potions'}"
 
             # transactions entry
             transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"),{"description": description}).scalar_one()
@@ -83,7 +83,7 @@ def get_bottle_plan():
         potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM global_inventory")).scalar_one()
     
     plan = []
-
+    print(potions)
     for potion in potions:
         # if I have enough ml of each type to make the potion and spare capacity in potion inventory, make potions
         # calculate max_possible_num_potions

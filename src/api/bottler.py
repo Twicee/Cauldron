@@ -108,6 +108,7 @@ def get_bottle_plan():
         total_dark_ml= total_dark_ml - (max_possible_num_potions * num_dark_ml)
 
         if max_possible_num_potions and (total_potions + max_possible_num_potions) <= potion_capacity:
+            total_potions = total_potions + max_possible_num_potions
             plan.append({
                         "potion_type": [num_red_ml, num_green_ml, num_blue_ml, num_dark_ml],
                         "quantity": max_possible_num_potions

@@ -54,20 +54,59 @@ def search_orders(
     Your results must be paginated, the max results you can return at any
     time is 5 total line items.
     """
+    stmt_text = sqlalchemy.text("""
+        SELECT
+            cart_items.cart_item_id,
+            potion_inventory.sku AS item_sku,
+            customers.name AS customer_name,
+            SUM(cart_items.quantity * potion_inventory.price) AS line_item_total,
+            carts.created_at AS timestamp
+        FROM
+            cart_items
+        JOIN carts ON cart_items.cart_id = carts.cart_id
+        JOIN customers ON carts.customer_id = customers.customer_id
+        JOIN potion_inventory ON cart_items.potion_id = potion_inventory.potion_id
+        GROUP BY
+            cart_items.cart_item_id,
+            potion_inventory.sku,
+            customers.name,
+            carts.created_at
+        LIMIT 5
+    """)
+
+    # Execute the SQL query within the context of the database connection
+    with db.engine.begin() as connection:
+        result = connection.execute(stmt_text).fetchall()
+
+        # Process the result, if needed
+        json_result = []
+        for row in result:
+            json_result.append({
+                "cart_item_id": row.cart_item_id,
+                "item_sku": row.item_sku,
+                "customer_name": row.customer_name,
+                "line_item_total": row.line_item_total,
+                "timestamp": row.timestamp.isoformat(),  # Convert timestamp to ISO format
+            })
 
     return {
         "previous": "",
-        "next": "",
-        "results": [
-            {
-                "line_item_id": 1,
-                "item_sku": "1 oblivion potion",
-                "customer_name": "Scaramouche",
-                "line_item_total": 50,
-                "timestamp": "2021-01-01T00:00:00Z",
-            }
-        ],
+        "next": "",  
+        "results": json_result,
     }
+    # return {
+    #     "previous": "",
+    #     "next": "",
+    #     "results": [
+    #         {
+    #             "line_item_id": 1,
+    #             "item_sku": "1 oblivion potion",
+    #             "customer_name": "Scaramouche",
+    #             "line_item_total": 50,
+    #             "timestamp": "2021-01-01T00:00:00Z",
+    #         }
+    #     ],
+    # }
 
 #   Customer schema 
 class Customer(BaseModel):

@@ -73,67 +73,67 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         return plan
     
     # Purchase a small green barrel
-    if gold >= 100 and (total_ml + 500) <= ml_capacity:
-        if gold >= 250 and (total_ml + 2500) <= ml_capacity:
-            plan.append(
-                {
-                    "sku": "MEDIUM_GREEN_BARREL",
-                    "quantity": 1,
-                }
-            )
-            gold = gold - 250
-            total_ml = total_ml + 2500
-        else:
-            plan.append(
-                {
-                    "sku": "SMALL_GREEN_BARREL",
-                    "quantity": 1,
-                }
-            )
-            gold = gold - 100
-            total_ml = total_ml + 500
+    # if gold >= 100 and (total_ml + 500) <= ml_capacity:
+    #     if gold >= 250 and (total_ml + 2500) <= ml_capacity:
+    #         plan.append(
+    #             {
+    #                 "sku": "MEDIUM_GREEN_BARREL",
+    #                 "quantity": 1,
+    #             }
+    #         )
+    #         gold = gold - 250
+    #         total_ml = total_ml + 2500
+    #     else:
+    #         plan.append(
+    #             {
+    #                 "sku": "SMALL_GREEN_BARREL",
+    #                 "quantity": 1,
+    #             }
+    #         )
+    #         gold = gold - 100
+    #         total_ml = total_ml + 500
     
-    #Purchase a small red barrel
-    if gold >= 100 and (total_ml + 500) <= ml_capacity:
-        if gold >= 250 and (total_ml + 2500) <= ml_capacity:
-            plan.append(
-                {
-                    "sku": "MEDIUM_RED_BARREL",
-                    "quantity": 1,
-                }
-            )
-            gold = gold - 250
-            total_ml = total_ml + 2500
-        else:
-            plan.append(
-                {
-                    "sku": "SMALL_RED_BARREL",
-                    "quantity": 1,
-                }
-            )
-            gold = gold - 100
-            total_ml = total_ml + 500
+    # #Purchase a small red barrel
+    # if gold >= 100 and (total_ml + 500) <= ml_capacity:
+    #     if gold >= 250 and (total_ml + 2500) <= ml_capacity:
+    #         plan.append(
+    #             {
+    #                 "sku": "MEDIUM_RED_BARREL",
+    #                 "quantity": 1,
+    #             }
+    #         )
+    #         gold = gold - 250
+    #         total_ml = total_ml + 2500
+    #     else:
+    #         plan.append(
+    #             {
+    #                 "sku": "SMALL_RED_BARREL",
+    #                 "quantity": 1,
+    #             }
+    #         )
+    #         gold = gold - 100
+    #         total_ml = total_ml + 500
     
-    #Purchase a small blue barrel
-    if gold >= 120 and (total_ml + 500) <= ml_capacity:
-        if gold >= 300 and (total_ml + 2500) <= ml_capacity:
-            plan.append(
-                {
-                    "sku": "MEDIUM_BLUE_BARREL",
-                    "quantity": 1,
-                }
-            )
-            gold = gold - 300
-            total_ml = total_ml + 2500
-        else:
-            plan.append(
-                {
-                    "sku": "SMALL_BLUE_BARREL",
-                    "quantity": 1,
-                }
-            )
-            gold = gold - 120
-            total_ml = total_ml + 500
+    # #Purchase a small blue barrel
+    # if gold >= 120 and (total_ml + 500) <= ml_capacity:
+    #     if gold >= 300 and (total_ml + 2500) <= ml_capacity:
+    #         plan.append(
+    #             {
+    #                 "sku": "MEDIUM_BLUE_BARREL",
+    #                 "quantity": 1,
+    #             }
+    #         )
+    #         gold = gold - 300
+    #         total_ml = total_ml + 2500
+    #     else:
+    #         plan.append(
+    #             {
+    #                 "sku": "SMALL_BLUE_BARREL",
+    #                 "quantity": 1,
+    #             }
+    #         )
+    #         gold = gold - 120
+    #         total_ml = total_ml + 500
 
     #Purchase a large dark barrel
     if gold >= 750 and (total_ml + 10000) <= ml_capacity:

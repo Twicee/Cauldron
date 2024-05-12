@@ -78,7 +78,6 @@ def get_bottle_plan():
         total_green_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger WHERE color = 'green'")).scalar_one()
         total_blue_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger WHERE color = 'blue'")).scalar_one()
         total_dark_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger WHERE color = 'dark'")).scalar_one()
-        # potions = connection.execute(sqlalchemy.text("SELECT num_red_ml, num_green_ml, num_blue_ml, num_dark_ml FROM potion_inventory ORDER BY random()")).fetchall()
         potions = connection.execute(sqlalchemy.text(""" 
                                                             SELECT pi.num_red_ml, pi.num_green_ml, pi.num_blue_ml, pi.num_dark_ml
                                                             FROM potion_inventory pi
@@ -94,7 +93,11 @@ def get_bottle_plan():
     
     plan = []
     print(potions)
+    #excluding: dark green, dark blue, blue
+    exclude = [(0, 50, 0, 50), (0, 0, 50, 50), (0, 0, 100, 0)]
     for potion in potions:
+        if potion in exclude:
+            continue
         # if I have enough ml of each type to make the potion and spare capacity in potion inventory, make potions
         # calculate max_possible_num_potions
         # potion = (r, g, b, d, q)

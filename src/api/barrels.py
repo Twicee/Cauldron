@@ -71,15 +71,15 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     
     #Purchase a small red barrel
     if gold >= 100 and (total_ml + 500) <= ml_capacity:
-        if gold >= 250 and (total_ml + 2500) <= ml_capacity:
+        if gold >= 500 and (total_ml + 5000) <= ml_capacity:
             plan.append(
                 {
                     "sku": "MEDIUM_RED_BARREL",
-                    "quantity": 1,
+                    "quantity": 2,
                 }
             )
-            gold = gold - 250
-            total_ml = total_ml + 2500
+            gold = gold - 500
+            total_ml = total_ml + 5000
         else:
             plan.append(
                 {
@@ -113,15 +113,15 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
 
     #Purchase a small green barrel
     if gold >= 100 and (total_ml + 500) <= ml_capacity:
-        if gold >= 250 and (total_ml + 2500) <= ml_capacity:
+        if gold >= 500 and (total_ml + 5000) <= ml_capacity:
             plan.append(
                 {
                     "sku": "MEDIUM_GREEN_BARREL",
-                    "quantity": 1,
+                    "quantity": 2,
                 }
             )
-            gold = gold - 250
-            total_ml = total_ml + 2500
+            gold = gold - 500
+            total_ml = total_ml + 5000
         else:
             plan.append(
                 {

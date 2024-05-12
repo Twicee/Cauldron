@@ -40,10 +40,10 @@ def post_deliver_barrels(barrels_delivered: list[Barrel], order_id: int):
         with db.engine.begin() as connection:
             # new transaction entry
             transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"), 
-                               {"description": f"PotionsHub spent {barrel.price} gold on {barrel.quantity} {color} {'barrel' if barrel.quantity == 1 else 'barrels'}"}).scalar_one()
+                               {"description": f"PotionsHub spent {barrel.price * barrel.quantity} gold on {barrel.quantity} {color} {'barrel' if barrel.quantity == 1 else 'barrels'}"}).scalar_one()
             # new ml_ledger entry
             connection.execute(sqlalchemy.text("INSERT INTO ml_ledger (transaction_id, color, change) VALUES (:transaction, :color, :change)"), 
-                               {"transaction": transaction_id, "color": color, "change": barrel.ml_per_barrel})
+                               {"transaction": transaction_id, "color": color, "change": (barrel.ml_per_barrel * barrel.quantity)})
             
             # new gold ledger entry
             connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, change) VALUES (:transaction, :change)"), 

@@ -59,19 +59,24 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
     """ """
     print(wholesale_catalog)    #displays whats for sale
     plan = []   #Begin with empty plan
-    # total_amount = 0
-
     with db.engine.begin() as connection:
         gold = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM gold_ledger")).scalar_one()
         total_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger")).scalar_one()
         ml_capacity = connection.execute(sqlalchemy.text("SELECT ml_capacity FROM global_inventory")).scalar_one()
-
+        ml_barrel_amounts = connection.execute(sqlalchemy.text("""
+                                                                SELECT color, COALESCE(SUM(change), 0) AS color_ml_amount
+                                                                FROM ml_ledger
+                                                                GROUP BY color
+                                                                ORDER BY total_ml
+                                                               """)).fetchall()
     # TODO: Implement better logic  
     # 1. You can only buy barrels when you have gold
     # 2. Keep a running count of how much you're spending
     if gold <= 0:
         return plan
-    
+    # for color, color_ml_amount in ml_barrel_amounts:
+
+
     #Purchase a small red barrel
     if gold >= 100 and (total_ml + 500) <= ml_capacity:
         if gold >= 250 and (total_ml + 2500) <= ml_capacity:
@@ -136,16 +141,18 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             total_ml = total_ml + 500
 
     #Purchase a large dark barrel
-    if gold >= 750 and (total_ml + 10000) <= ml_capacity:
-        plan.append(
-            {
-                "sku": "LARGE_DARK_BARREL",
-                "quantity": 1,
-            }
-        )
-        gold = gold - 750
-        total_ml = total_ml + 10000
-    
+    for barrel in wholesale_catalog:
+        if barrel.sku == "LARGE_DARK_BARREL":
+            if gold >= 750 and (total_ml + 10000) <= ml_capacity:
+                plan.append(
+                    {
+                        "sku": "LARGE_DARK_BARREL",
+                        "quantity": 1,
+                    }
+                )
+                gold = gold - 750
+                total_ml = total_ml + 10000
+
     print(plan) #delete - only for testing purposes 
     return plan
 

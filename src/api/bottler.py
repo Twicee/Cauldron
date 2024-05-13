@@ -88,6 +88,12 @@ def get_bottle_plan():
                                                             ) pl ON pi.potion_id = pl.potion_id
                                                             ORDER BY COALESCE(total_quantity, 0);
                                                     """)).fetchall()
+        # grab the current potion quantity for each potion type
+        current_red_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger WHERE potion_id = 2")).scalar_one()
+        current_green_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger WHERE potion_id = 3")).scalar_one()
+        current_dark_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger WHERE potion_id = 5")).scalar_one()
+        current_purple_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger WHERE potion_id = 6")).scalar_one()
+        current_brown_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger WHERE potion_id = 7")).scalar_one()
         total_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger")).scalar_one() 
         potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM global_inventory")).scalar_one()
     
@@ -125,6 +131,31 @@ def get_bottle_plan():
         if max_possible_num_potions > potion_cap:
             max_possible_num_potions = potion_cap
 
+        #red
+        if potion == (100, 0, 0, 0):
+            if current_red_potions >= potion_cap:
+                continue
+        
+        #green
+        if potion == (0, 100, 0, 0):
+            if current_green_potions >= potion_cap:
+                continue
+
+        #dark
+        if potion == (0, 0, 0, 100):
+            if current_dark_potions >= potion_cap:
+                continue
+        
+        #purple
+        if potion == (50, 0, 50, 0):
+            if current_purple_potions >= potion_cap:
+                continue
+        
+        #brown
+        if potion == (50, 50, 0, 0):
+            if current_brown_potions >= potion_cap:
+                continue 
+        
         if max_possible_num_potions and (total_potions + max_possible_num_potions) <= potion_capacity:
             total_potions = total_potions + max_possible_num_potions
             plan.append({

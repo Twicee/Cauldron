@@ -30,28 +30,14 @@ def get_capacity_plan():
     capacity unit costs 1000 gold.
     """
     with db.engine.begin() as connection:
-        total_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger")).scalar_one()
-        total_ml = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM ml_ledger")).scalar_one()
         total_gold = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM gold_ledger")).scalar_one()
     
     # TODO: Increment the total number of potions so that it covers buying at least two barrels at the respective size of shop
-    if total_potions >= 25 and total_gold >= 1000:
-        total_gold = total_gold - 1000
-        if total_gold >= 1000:
-            print("Shop is big now! buying more inventory space for potions and ml")
-            with db.engine.begin() as connection:
-                connection.execute(sqlalchemy.text("UPDATE global_inventory SET potion_capacity = potion_capacity + 50"))
-                connection.execute(sqlalchemy.text("UPDATE global_inventory SET ml_capacity = ml_capacity + 10000"))
-            return {
-            "potion_capacity": 1,
-            "ml_capacity": 1
-            }
-        print("Shop is big now! buying more inventory space for potions") #delete - debug purposes
-        with db.engine.begin() as connection:
-            connection.execute(sqlalchemy.text("UPDATE global_inventory SET potion_capacity = potion_capacity + 50"))
+    if total_gold >= 4000:
+        print("Shop is booming! I want to upgrade my inventory capacity!")
         return {
-            "potion_capacity": 1,
-            "ml_capacity": 0
+        "potion_capacity": 2,
+        "ml_capacity": 2
         }
     else:
         print("Shop not ready to expand") #delete - debug purposes 
@@ -77,9 +63,12 @@ def deliver_capacity_plan(capacity_purchase : CapacityPurchase, order_id: int):
                                                 {"description": f"PotionsHub spent {capacity_purchase.potion_capacity * 1000} gold upgrading their potion capacity"}).scalar_one()
             connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, change) VALUES (:transaction, :change)"), 
                                {"transaction": transaction_id, "change": -(capacity_purchase.potion_capacity * 1000)})
+            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET potion_capacity = potion_capacity + {capacity_purchase.potion_capacity * 50}"))
         if capacity_purchase.ml_capacity:
             transaction_id = connection.execute(sqlalchemy.text("INSERT INTO transactions (description) VALUES (:description) RETURNING transaction_id"),
                                                 {"description": f"PotionsHub spent {capacity_purchase.ml_capacity * 1000} gold upgrading their ml capacity"}).scalar_one()
             connection.execute(sqlalchemy.text("INSERT INTO gold_ledger (transaction_id, change) VALUES (:transaction, :change)"), 
                                {"transaction": transaction_id, "change": -(capacity_purchase.ml_capacity * 1000)})
+            connection.execute(sqlalchemy.text(f"UPDATE global_inventory SET ml_capacity = ml_capacity + {capacity_purchase.ml_capacity * 10000}"))
+    print(f"Potion Capacity: +{capacity_purchase.potion_capacity * 50} and ml capacity: +{capacity_purchase.ml_capacity * 10000}")
     return "OK"

@@ -150,65 +150,13 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
             if gold >= 750 and (total_ml + 10000) <= ml_capacity:
                 plan.append(
                     {
-                        "sku": f"LARGE_{color}_BARREL",
+                        "sku": "LARGE_DARK_BARREL",
                         "quantity": 1,
                     }
                 )
                 gold = gold - 750
                 total_ml = total_ml + 10000
                 
-        # if color == "RED" or color == "GREEN":
-        #     if gold >= 250 and (total_ml + 2500) <= ml_capacity:
-        #         if gold >= 500 and (total_ml + 5000) <= ml_capacity:
-        #             plan.append(
-        #                 {
-        #                     "sku": f"MEDIUM_{color}_BARREL",
-        #                     "quantity": 2,
-        #                 }
-        #             )
-        #             gold = gold - 500
-        #             total_ml = total_ml + 5000
-        #         else:
-        #             plan.append(
-        #                 {
-        #                     "sku": f"MEDIUM_{color}_BARREL",
-        #                     "quantity": 1,
-        #                 }
-        #             )
-        #             gold = gold - 250
-        #             total_ml = total_ml + 2500
-        # if color == "BLUE":
-        #     #Purchase a small blue barrel
-        #     if gold >= 300 and (total_ml + 2500) <= ml_capacity:
-        #         if gold >= 600 and (total_ml + 5000) <= ml_capacity:
-        #             plan.append(
-        #                 {
-        #                     "sku": f"MEDIUM_{color}_BARREL",
-        #                     "quantity": 2,
-        #                 }
-        #             )
-        #             gold = gold - 600
-        #             total_ml = total_ml + 5000
-        #         else:
-        #             plan.append(
-        #                 {
-        #                     "sku": f"MEDIUM_{color}_BARREL",
-        #                     "quantity": 1,
-        #                 }
-        #             )
-        #             gold = gold - 300
-        #             total_ml = total_ml + 2500
-        # if color == "DARK":
-        #     if gold >= 750 and (total_ml + 10000) <= ml_capacity:
-        #         plan.append(
-        #             {
-        #                 "sku": f"LARGE_{color}_BARREL",
-        #                 "quantity": 1,
-        #             }
-        #         )
-        #         gold = gold - 750
-        #         total_ml = total_ml + 10000
-
     print(plan) #delete - only for testing purposes 
     return plan
 

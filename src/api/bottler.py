@@ -127,7 +127,7 @@ def get_bottle_plan():
         total_dark_ml= total_dark_ml - (max_possible_num_potions * num_dark_ml)
 
         #add a cap on the max number of potion that can be produced at a given time as to not overstock on one potion
-        potion_cap = potion_capacity // 5
+        potion_cap = potion_capacity // 5   #5 potions currently offered
         if max_possible_num_potions > potion_cap:
             max_possible_num_potions = potion_cap
 

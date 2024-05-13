@@ -19,7 +19,7 @@ def get_catalog():
                                                       JOIN potion_ledger pl ON pi.potion_id = pl.potion_id
                                                       GROUP BY pi.sku, pi.name, pi.price, pi.num_red_ml, pi.num_green_ml, pi.num_blue_ml, pi.num_dark_ml
                                                       HAVING SUM(pl.change) > 0
-                                                      ORDER BY random()
+                                                      ORDER BY quantity DESC
                                                       LIMIT 6
                                                       """)).fetchall()
     for row in products:

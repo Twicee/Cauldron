@@ -101,8 +101,8 @@ def get_bottle_plan():
     
     plan = []
     print(potions)
-    #excluding: dark green, dark blue
-    exclude = [(0, 50, 0, 50), (0, 0, 50, 50)]
+    #excluding: dark green, dark blue, navy
+    exclude = [(0, 50, 0, 50), (0, 0, 50, 50), (0, 50, 50, 0)]
     for potion in potions:
         if potion in exclude:
             continue
@@ -129,7 +129,7 @@ def get_bottle_plan():
         total_dark_ml= total_dark_ml - (max_possible_num_potions * num_dark_ml)
 
         #add a cap on the max number of potion that can be produced at a given time as to not overstock on one potion
-        potion_cap = potion_capacity // 7   #7 potions currently offered
+        potion_cap = potion_capacity // 6  #6 potions currently offered
         if max_possible_num_potions > potion_cap:
             max_possible_num_potions = potion_cap
 
@@ -162,11 +162,6 @@ def get_bottle_plan():
         if potion == (50, 50, 0, 0):
             if current_brown_potions >= potion_cap:
                 continue 
-        
-        #navy
-        if potion == (0, 50, 50, 0):
-            if current_navy_potions >= potion_cap:
-                continue
         
         if max_possible_num_potions and (total_potions + max_possible_num_potions) <= potion_capacity:
             total_potions = total_potions + max_possible_num_potions

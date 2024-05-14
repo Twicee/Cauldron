@@ -80,7 +80,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         #   1 LARGE RED BARREL = 500 gold
         if color == "RED":
             if gold >= 500 and (total_ml + 10000) <= ml_capacity:
-                if gold >= 1000 (total_ml + 20000) <= ml_capacity:
+                if gold >= 1000 and (total_ml + 20000) <= ml_capacity:
                     plan.append(
                         {
                             "sku": "LARGE_RED_BARREL",
@@ -102,7 +102,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         #   1 LARGE_GREEN_BARREL = 400
         if color == "GREEN":
             if gold >= 400 and (total_ml + 10000) <= ml_capacity:
-                if gold >= 800 (total_ml + 20000) <= ml_capacity:
+                if gold >= 800 and (total_ml + 20000) <= ml_capacity:
                     plan.append(
                         {
                             "sku": "LARGE_GREEN_BARREL",
@@ -124,7 +124,7 @@ def get_wholesale_purchase_plan(wholesale_catalog: list[Barrel]):
         #   1 LARGE BLUE BARREL = 600
         if color == "BLUE":
             if gold >= 600 and (total_ml + 10000) <= ml_capacity:
-                if gold >= 1200 (total_ml + 20000) <= ml_capacity:
+                if gold >= 1200 and (total_ml + 20000) <= ml_capacity:
                     plan.append(
                         {
                             "sku": "LARGE_BLUE_BARREL",

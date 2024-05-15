@@ -97,7 +97,7 @@ def get_bottle_plan():
         current_brown_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger WHERE potion_id = 7")).scalar_one()
         total_potions = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM potion_ledger")).scalar_one() 
         potion_capacity = connection.execute(sqlalchemy.text("SELECT potion_capacity FROM global_inventory")).scalar_one()
-    
+
     plan = []
     print(potions)
     #excluding: dark green, dark blue, navy

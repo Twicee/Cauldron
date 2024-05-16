@@ -33,11 +33,11 @@ def get_capacity_plan():
         total_gold = connection.execute(sqlalchemy.text("SELECT COALESCE(SUM(change), 0) FROM gold_ledger")).scalar_one()
     
     # TODO: Increment the total number of potions so that it covers buying at least two barrels at the respective size of shop
-    if total_gold >= 8000:
+    if total_gold >= 31000:
         print("Shop is booming! I want to upgrade my inventory capacity!")
         return {
-        "potion_capacity": 4,
-        "ml_capacity": 4
+        "potion_capacity": 15,
+        "ml_capacity": 16
         }
     else:
         print("Shop not ready to expand") #delete - debug purposes 
